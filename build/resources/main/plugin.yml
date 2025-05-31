@@ -1,0 +1,16 @@
+name: SellOres
+version: 1.0
+main: plugins.sellOres.SellOres
+api-version: 1.21
+commands:
+  sellores:
+    description: Opens the ore selling GUI
+    usage: /sellores
+  auction:
+    description: Open the auction house
+  sell:
+    description: Opens up a GUI to add items to the auction
+    usage: /sell
+softdepend: [Vault]
+authors: [ BelgarionofRiva - AAA ]
+description: A plugin for selling ores in exchange for an in-game currency
