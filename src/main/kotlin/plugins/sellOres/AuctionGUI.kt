@@ -2,6 +2,7 @@ package plugins.sellOres
 
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -9,17 +10,42 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
-import net.milkbowl.vault.economy.Economy
+import org.bukkit.persistence.PersistentDataType
+import java.util.UUID
 import org.bukkit.OfflinePlayer
+import org.bukkit.inventory.meta.ItemMeta
+import org.bukkit.persistence.PersistentDataContainer
 
 object AuctionGUI : Listener {
+
+    private val auctionIdKey = NamespacedKey(SellOres.plugin, "auction_id")
+
     fun openAuctionGUI(player: Player) {
         val inv: Inventory = Bukkit.createInventory(null, 54, "Auction House")
-        for (i in 0..53) {
-            inv.setItem(i, ItemStack(Material.ANCIENT_DEBRIS))
+        val auctions = Database.getAllAuctions()
+
+        for ((index, auction) in auctions.withIndex()) {
+            if (index >= 54) break
+            val (id, sellerUUID, item, price) = auction
+
+            val meta = item.itemMeta ?: continue
+            val sellerName = Bukkit.getOfflinePlayer(UUID.fromString(sellerUUID)).name ?: "Unknown"
+
+            val lore = mutableListOf<String>()
+            lore.add("§7Seller: §f$sellerName")
+            lore.add("§7Price: §e$$price")
+            meta.lore = lore
+
+            meta.persistentDataContainer.set(auctionIdKey, PersistentDataType.INTEGER, id)
+            item.itemMeta = meta
+
+            inv.setItem(index, item)
         }
+
+
         player.openInventory(inv)
     }
+
     fun register(plugin: JavaPlugin) {
         Bukkit.getPluginManager().registerEvents(this, plugin)
     }
@@ -32,22 +58,24 @@ object AuctionGUI : Listener {
         val item = event.currentItem ?: return
         val player = event.whoClicked as? Player ?: return
 
-        val type = item.type
-        val pricePerStack = 45
-        val totalCost = pricePerStack * 64
+        val meta = item.itemMeta ?: return
+        val container = meta.persistentDataContainer
+        val auctionId = container.get(auctionIdKey, PersistentDataType.INTEGER) ?: return
+
+        val auction = Database.getAuctionById(auctionId) ?: return
+        val price = auction.price
 
         val balance = SellOres.econ.getBalance(player)
 
-        if (balance >= totalCost) {
-            SellOres.econ.withdrawPlayer(player as OfflinePlayer, totalCost.toDouble())
+        if (balance >= price) {
+            SellOres.econ.withdrawPlayer(player as OfflinePlayer, price.toDouble())
+            player.inventory.addItem(auction.item)
+            Database.deleteAuction(auctionId)
 
-            val stack = ItemStack(Material.ANCIENT_DEBRIS, 64)
-            player.inventory.addItem(stack)
-
-            player.sendMessage("§aPurchased 1 stack of ${type.name.lowercase().replace('_', ' ')} for §e$${totalCost}")
+            player.sendMessage("§aYou bought the item for §e$$price§a!")
+            event.currentItem = null
         } else {
-            player.sendMessage("§cYou need $${totalCost} to buy this stack (45 stacks of value).")
+            player.sendMessage("§cYou need §e$$price §cto buy this item.")
         }
     }
-    }
-
+}

@@ -6,7 +6,15 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
+import org.bukkit.util.io.BukkitObjectInputStream
+import org.bukkit.inventory.ItemStack
 
+data class Auction(
+    val id: Int,
+    val sellerUUID: String,
+    val item: ItemStack,
+    val price: Int
+)
 object Database {
     private var connection: Connection? = null
 
@@ -41,15 +49,73 @@ object Database {
         ps.executeUpdate()
         ps.close()
     }
+    fun getAllAuctions(): List<Auction> {
+        val list = mutableListOf<Auction>()
+        val rs = connection!!.createStatement().executeQuery("SELECT id, seller_uuid, item_data, price FROM auctions")
+        while (rs.next()) {
+            val id = rs.getInt("id")
+            val uuid = rs.getString("seller_uuid")
+            val itemData = rs.getBytes("item_data")
+            val price = rs.getInt("price")
+            val item = deserializeItemStack(itemData)
+            list.add(Auction(id, uuid, item, price))
+        }
+        rs.close()
+        return list
+    }
+
+
+    fun deserializeItemStack(bytes: ByteArray): ItemStack {
+        val inputStream = bytes.inputStream()
+        val dataInput = BukkitObjectInputStream(inputStream)
+        val item = dataInput.readObject() as ItemStack
+        dataInput.close()
+        return item
+    }
+    fun deleteAuction(id: Int) {
+        val sql = "DELETE FROM auctions WHERE id = ?"
+        val ps = connection!!.prepareStatement(sql)
+        ps.setInt(1, id)
+        ps.executeUpdate()
+        ps.close()
+    }
+    fun getConnection(): Connection {
+        return connection ?: throw IllegalStateException("Database not connected!")
+    }
+
+    fun getAuctionById(id: Int): Auction? {
+        val conn = getConnection()
+        val stmt = conn.prepareStatement("SELECT * FROM auctions WHERE id = ?")
+        stmt.setInt(1, id)
+        val rs = stmt.executeQuery()
+
+        return if (rs.next()) {
+            val sellerUUID = rs.getString("seller_uuid")
+            val itemBytes = rs.getBytes("item_data")
+            val price = rs.getInt("price")
+
+            val item = deserializeItemStack(itemBytes)
+            Auction(id, sellerUUID, item, price)
+        } else {
+            null
+        }.also {
+            rs.close()
+            stmt.close()
+        }
+    }
+
+
 }
 class SellOres : JavaPlugin() {
 
     companion object {
+        lateinit var plugin: SellOres
         lateinit var econ: Economy
             private set
     }
 
     override fun onEnable() {
+        plugin = this
         if (!setupEconomy()) {
             logger.severe("Vault or compatible economy plugin not found! Disabling plugin.")
             server.pluginManager.disablePlugin(this)
