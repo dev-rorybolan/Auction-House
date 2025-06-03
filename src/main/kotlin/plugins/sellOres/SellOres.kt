@@ -125,15 +125,19 @@ class SellOres : JavaPlugin() {
         this.getCommand("sellores")?.setExecutor(SellCommand(this))
         this.getCommand("auction")?.setExecutor(AuctionCommand(this))
         this.getCommand("sell")?.setExecutor(UploadCommand(this))
+
         SellGUI.register(this)
         AuctionGUI.register(this)
         AddToAuctionGUI.register(this)
+        server.pluginManager.registerEvents(JoinListener(), this)
+
         logger.info("SellOres has been enabled!")
     }
 
     override fun onDisable() {
         logger.info("Rory why did you touch it? SellOres has been disabled.")
     }
+
 
     private fun setupEconomy(): Boolean {
         val rsp: RegisteredServiceProvider<Economy>? =

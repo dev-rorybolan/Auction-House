@@ -65,12 +65,23 @@ object AuctionGUI : Listener {
 
         if (balance >= price) {
             SellOres.econ.withdrawPlayer(player as OfflinePlayer, price.toDouble())
+
+            val sellerUUID = UUID.fromString(auction.sellerUUID)
+            val sellerOffline = Bukkit.getOfflinePlayer(sellerUUID)
+            SellOres.econ.depositPlayer(sellerOffline, price.toDouble())
+            val sellerOnline = Bukkit.getPlayer(sellerUUID)
+            if (sellerOnline != null) {
+                sellerOnline.sendMessage("§aYour item was sold for §e$$price§a!")
+            }
+
             player.inventory.addItem(auction.item)
             Database.deleteAuction(auctionId)
 
             player.sendMessage("§aYou bought the item for §e$$price§a!")
+
             event.currentItem = null
-        } else {
+        }
+        else {
             player.sendMessage("§cYou need §e$$price §cto buy this item.")
         }
     }
