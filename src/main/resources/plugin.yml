@@ -13,4 +13,4 @@ commands:
     usage: /sell
 softdepend: [Vault]
 authors: [ BelgarionofRiva - AAA ]
-description: A plugin for selling ores in exchange for an in-game currency
+description: A plugin for selling ores in exchange for an in-game currency, as well as an auction system where players can sell to other players
