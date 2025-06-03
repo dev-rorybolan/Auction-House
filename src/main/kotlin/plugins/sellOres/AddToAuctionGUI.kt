@@ -11,9 +11,7 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.ByteArrayOutputStream
-import java.io.ObjectOutputStream
 import java.util.*
-import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.util.io.BukkitObjectOutputStream
 
 object AddToAuctionGUI : Listener {
