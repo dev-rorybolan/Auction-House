@@ -129,7 +129,7 @@ class SellOres : JavaPlugin() {
         SellGUI.register(this)
         AuctionGUI.register(this)
         AddToAuctionGUI.register(this)
-        server.pluginManager.registerEvents(JoinListener(), this)
+        server.pluginManager.registerEvents(JoinListener(this), this)
 
         logger.info("SellOres has been enabled!")
     }
