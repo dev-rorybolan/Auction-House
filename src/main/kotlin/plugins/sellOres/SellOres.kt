@@ -9,16 +9,16 @@ import java.sql.PreparedStatement
 import org.bukkit.util.io.BukkitObjectInputStream
 import org.bukkit.inventory.ItemStack
 
-public final data class Auction(
+data class Auction(
     val id: Int,
     val sellerUUID: String,
     val item: ItemStack,
     val price: Int
 )
-public final object Database {
+object Database {
     private var connection: Connection? = null
 
-    public final fun connect() {
+    fun connect() {
         val pluginFolder = java.io.File("plugins/SellOres")
         if (!pluginFolder.exists()) {
             pluginFolder.mkdirs()
