@@ -1,5 +1,7 @@
 # Compiled class file
 *.class
+.gradle
+.kotlin
 # intellij config files
 .idea
 # Log file
