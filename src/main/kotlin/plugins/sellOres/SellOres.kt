@@ -9,16 +9,16 @@ import java.sql.PreparedStatement
 import org.bukkit.util.io.BukkitObjectInputStream
 import org.bukkit.inventory.ItemStack
 
-data class Auction(
+public final data class Auction(
     val id: Int,
     val sellerUUID: String,
     val item: ItemStack,
     val price: Int
 )
-object Database {
+public final object Database {
     private var connection: Connection? = null
 
-    fun connect() {
+    public final fun connect() {
         val pluginFolder = java.io.File("plugins/SellOres")
         if (!pluginFolder.exists()) {
             pluginFolder.mkdirs()
@@ -136,6 +136,7 @@ class SellOres : JavaPlugin() {
 
     override fun onDisable() {
         logger.info("Rory why did you touch it? SellOres has been disabled.")
+        logger.info("I DON'T CARE WHAT YOU DID JUST FIX IT")
     }
 
 
